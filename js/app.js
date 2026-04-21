@@ -2,135 +2,6 @@
 // ElectIQ — Frontend Application Logic
 // ====================================================
  
- // ---- SESSION & LANGUAGE MANAGEMENT ----
- function getOrCreateSessionId() {
-   let sid = localStorage.getItem('electiq_session_id');
-   if (!sid) {
-     sid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
-     localStorage.setItem('electiq_session_id', sid);
-   }
-   return sid;
- }
- 
- const SESSION_ID = getOrCreateSessionId();
- let currentLang = localStorage.getItem('electiq_lang') || 'en';
- 
- // Original English data to fall back on
- const DEFAULT_TIMELINE_DATA = JSON.parse(JSON.stringify(TIMELINE_DATA));
- 
- // Static strings to translate
- const STATIC_UI_BASE = {
-   'hero-eyebrow': 'Your civic guide',
-   'hero-title': 'Understand your vote.\nShape your future.',
-   'hero-subtitle': 'ElectIQ makes democracy simple — learn the election process, ask AI anything, and become a confident citizen.',
-   'btn-start': 'Start Learning',
-   'btn-ask': 'Ask AI Assistant'
- };
- 
- // Update UI to match stored language
- document.addEventListener('DOMContentLoaded', () => {
-   const langSelect = document.getElementById('lang-select');
-   if (langSelect) {
-     langSelect.value = currentLang;
-     langSelect.addEventListener('change', async (e) => {
-       currentLang = e.target.value;
-       localStorage.setItem('electiq_lang', currentLang);
-       await updateStaticUI(currentLang);
-       loadHistory(); 
-     });
-   }
-   // Apply current lang on load
-   if (currentLang !== 'en') updateStaticUI(currentLang);
- });
- 
- async function updateStaticUI(lang) {
-   if (lang === 'en') {
-     // Reset to defaults
-     Object.assign(TIMELINE_DATA, JSON.parse(JSON.stringify(DEFAULT_TIMELINE_DATA)));
-     Object.entries(STATIC_UI_BASE).forEach(([id, text]) => {
-       const el = document.getElementById(id);
-       if (el) el.innerText = text;
-     });
-     renderTimeline(activeCountry);
-     return;
-   }
- 
-   // Check cache
-   const cacheKey = `ui_cache_${lang}`;
-   let cached = localStorage.getItem(cacheKey);
-   
-   if (cached) {
-     const { staticTexts, timelineData } = JSON.parse(cached);
-     applyTranslatedUI(staticTexts, timelineData);
-   } else {
-     try {
-       // Bulk translate
-       const res = await fetch('/api/translate-ui', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ items: STATIC_UI_BASE, lang })
-       });
-       const data = await res.json();
- 
-       // Also translate the timeline (this is bigger, so we do it in a separate logic or same)
-       // For simplicity, let's just translate the static UI first then the timeline data
-       
-       const staticTexts = data.items;
-       const timelineData = await translateTimeline(lang);
- 
-       localStorage.setItem(cacheKey, JSON.stringify({ staticTexts, timelineData }));
-       applyTranslatedUI(staticTexts, timelineData);
-     } catch (err) {
-       console.error('Translation error:', err);
-     }
-   }
- }
- 
- function applyTranslatedUI(staticTexts, timelineData) {
-   Object.entries(staticTexts).forEach(([id, text]) => {
-     const el = document.getElementById(id);
-     if (el) el.innerText = text;
-   });
-   
-   if (timelineData) {
-     Object.assign(TIMELINE_DATA, timelineData);
-     renderTimeline(activeCountry);
-   }
- }
- 
- async function translateTimeline(lang) {
-   // Flattens timeline for translation
-   const stepsToTranslate = [];
-   const pathMap = [];
- 
-   Object.entries(DEFAULT_TIMELINE_DATA).forEach(([country, steps]) => {
-     steps.forEach((step, i) => {
-       stepsToTranslate.push(step.name, step.duration, step.description);
-       pathMap.push({ country, i, fields: ['name', 'duration', 'description'] });
-     });
-   });
- 
-   const res = await fetch('/api/translate-ui', {
-     method: 'POST',
-     headers: { 'Content-Type': 'application/json' },
-     body: JSON.stringify({ 
-       items: stepsToTranslate.reduce((acc, text, index) => ({...acc, [index]: text}), {}),
-       lang 
-     })
-   });
-   const data = await res.json();
- 
-   const newTimeline = JSON.parse(JSON.stringify(DEFAULT_TIMELINE_DATA));
-   let count = 0;
-   Object.entries(newTimeline).forEach(([country, steps]) => {
-     steps.forEach((step, i) => {
-       step.name = data.items[count++];
-       step.duration = data.items[count++];
-       step.description = data.items[count++];
-     });
-   });
-   return newTimeline;
- }
 
 // ---- TIMELINE DATA ----
 const TIMELINE_DATA = {
@@ -267,6 +138,133 @@ const TIMELINE_DATA = {
     },
   ]
 };
+ 
+ // ---- SESSION & LANGUAGE MANAGEMENT ----
+ function getOrCreateSessionId() {
+   let sid = localStorage.getItem('electiq_session_id');
+   if (!sid) {
+     sid = 'sess_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+     localStorage.setItem('electiq_session_id', sid);
+   }
+   return sid;
+ }
+ 
+ const SESSION_ID = getOrCreateSessionId();
+ let currentLang = localStorage.getItem('electiq_lang') || 'en';
+ 
+ // Original English data to fall back on
+ const DEFAULT_TIMELINE_DATA = JSON.parse(JSON.stringify(TIMELINE_DATA));
+ 
+ // Static strings to translate
+ const STATIC_UI_BASE = {
+   'hero-eyebrow': 'Your civic guide',
+   'hero-title': 'Understand your vote.\nShape your future.',
+   'hero-subtitle': 'ElectIQ makes democracy simple — learn the election process, ask AI anything, and become a confident citizen.',
+   'btn-start': 'Start Learning',
+   'btn-ask': 'Ask AI Assistant'
+ };
+ 
+ // Update UI to match stored language
+ document.addEventListener('DOMContentLoaded', () => {
+   const langSelect = document.getElementById('lang-select');
+   if (langSelect) {
+     langSelect.value = currentLang;
+     langSelect.addEventListener('change', async (e) => {
+       currentLang = e.target.value;
+       localStorage.setItem('electiq_lang', currentLang);
+       await updateStaticUI(currentLang);
+       loadHistory(); 
+     });
+   }
+   // Apply current lang on load
+   if (currentLang !== 'en') updateStaticUI(currentLang);
+ });
+ 
+ async function updateStaticUI(lang) {
+   if (lang === 'en') {
+     // Reset to defaults
+     Object.assign(TIMELINE_DATA, JSON.parse(JSON.stringify(DEFAULT_TIMELINE_DATA)));
+     Object.entries(STATIC_UI_BASE).forEach(([id, text]) => {
+       const el = document.getElementById(id);
+       if (el) el.innerText = text;
+     });
+     renderTimeline(activeCountry);
+     return;
+   }
+ 
+   // Check cache
+   const cacheKey = `ui_cache_${lang}`;
+   let cached = localStorage.getItem(cacheKey);
+   
+   if (cached) {
+     const { staticTexts, timelineData } = JSON.parse(cached);
+     applyTranslatedUI(staticTexts, timelineData);
+   } else {
+     try {
+       // Bulk translate
+       const res = await fetch('/api/translate-ui', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ items: STATIC_UI_BASE, lang })
+       });
+       const data = await res.json();
+ 
+       const staticTexts = data.items;
+       const timelineData = await translateTimeline(lang);
+ 
+       localStorage.setItem(cacheKey, JSON.stringify({ staticTexts, timelineData }));
+       applyTranslatedUI(staticTexts, timelineData);
+     } catch (err) {
+       console.error('Translation error:', err);
+     }
+   }
+ }
+ 
+ function applyTranslatedUI(staticTexts, timelineData) {
+   Object.entries(staticTexts).forEach(([id, text]) => {
+     const el = document.getElementById(id);
+     if (el) el.innerText = text;
+   });
+   
+   if (timelineData) {
+     Object.assign(TIMELINE_DATA, timelineData);
+     renderTimeline(activeCountry);
+   }
+ }
+ 
+ async function translateTimeline(lang) {
+   // Flattens timeline for translation
+   const stepsToTranslate = [];
+   const pathMap = [];
+ 
+   Object.entries(DEFAULT_TIMELINE_DATA).forEach(([country, steps]) => {
+     steps.forEach((step, i) => {
+       stepsToTranslate.push(step.name, step.duration, step.description);
+       pathMap.push({ country, i, fields: ['name', 'duration', 'description'] });
+     });
+   });
+ 
+   const res = await fetch('/api/translate-ui', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ 
+       items: stepsToTranslate.reduce((acc, text, index) => ({...acc, [index]: text}), {}),
+       lang 
+     })
+   });
+   const data = await res.json();
+ 
+   const newTimeline = JSON.parse(JSON.stringify(DEFAULT_TIMELINE_DATA));
+   let count = 0;
+   Object.entries(newTimeline).forEach(([country, steps]) => {
+     steps.forEach((step, i) => {
+       step.name = data.items[count++];
+       step.duration = data.items[count++];
+       step.description = data.items[count++];
+     });
+   });
+   return newTimeline;
+ }
 
 // ---- MOBILE NAV TOGGLE ----
 const navToggle = document.getElementById('nav-toggle');
