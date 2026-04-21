@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ElectIQ — AI-powered election process education assistant. Learn voting, registration, and democratic processes." />
+  <title>ElectIQ — Understand Your Vote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Skip link for accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- HEADER -->
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="logo" aria-label="ElectIQ home">
+        <span class="logo-icon" aria-hidden="true">🗳</span>
+        <span class="logo-text">ElectIQ</span>
+      </div>
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+        <a href="#timeline" class="nav-link">Timeline</a>
+        <a href="#assistant" class="nav-link">AI Assistant</a>
+        <a href="#quiz" class="nav-link">Quiz</a>
+        <a href="#map" class="nav-link">Find Polling Station</a>
+      </nav>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+        <span class="theme-icon" aria-hidden="true">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="main-content" role="main">
+
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="hero-circle c1"></div>
+        <div class="hero-circle c2"></div>
+        <div class="hero-circle c3"></div>
+      </div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">Your civic guide</p>
+        <h1 id="hero-title" class="hero-title">Understand your vote.<br/>Shape your future.</h1>
+        <p class="hero-subtitle">ElectIQ makes democracy simple — learn the election process, ask AI anything, and become a confident citizen.</p>
+        <div class="hero-ctas">
+          <a href="#timeline" class="btn btn-primary">Start Learning</a>
+          <a href="#assistant" class="btn btn-ghost">Ask AI Assistant</a>
+        </div>
+        <div class="hero-cards" role="list">
+          <div class="hero-card" role="listitem">
+            <span class="hero-card-icon" aria-hidden="true">📋</span>
+            <strong>Learn the Process</strong>
+            <p>Step-by-step election timelines</p>
+          </div>
+          <div class="hero-card" role="listitem">
+            <span class="hero-card-icon" aria-hidden="true">🤖</span>
+            <strong>Ask AI Anything</strong>
+            <p>Gemini-powered civic assistant</p>
+          </div>
+          <div class="hero-card" role="listitem">
+            <span class="hero-card-icon" aria-hidden="true">📍</span>
+            <strong>Find Polling Stations</strong>
+            <p>Locate your nearest vote centre</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ELECTION TIMELINE -->
+    <section class="section timeline-section" id="timeline" aria-labelledby="timeline-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 id="timeline-title" class="section-title">Election Timeline</h2>
+          <p class="section-sub">Click any step to explore what happens and what you need to do</p>
+        </div>
+
+        <div class="election-tabs" role="tablist" aria-label="Election type">
+          <button class="etab active" role="tab" aria-selected="true" data-country="india">🇮🇳 India</button>
+          <button class="etab" role="tab" aria-selected="false" data-country="us">🇺🇸 USA</button>
+          <button class="etab" role="tab" aria-selected="false" data-country="uk">🇬🇧 UK</button>
+        </div>
+
+        <div class="timeline" role="list" id="timeline-steps"></div>
+
+        <div class="timeline-detail" id="timeline-detail" role="region" aria-live="polite" aria-label="Step details" hidden>
+          <button class="detail-close" id="detail-close" aria-label="Close details">✕</button>
+          <div id="timeline-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI CHAT ASSISTANT -->
+    <section class="section chat-section" id="assistant" aria-labelledby="chat-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 id="chat-title" class="section-title">AI Election Assistant</h2>
+          <p class="section-sub">Ask anything about elections, voting rights, or democratic processes</p>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-label="Chat conversation" aria-relevant="additions">
+            <div class="msg bot">
+              <div class="msg-avatar" aria-hidden="true">🤖</div>
+              <div class="msg-content">
+                <p>Hello! I'm ElectIQ, your AI-powered election guide. I can help you understand voter registration, election timelines, candidate processes, and your democratic rights. What would you like to know?</p>
+                <span class="msg-time" aria-label="Sent just now">Just now</span>
+              </div>
+            </div>
+          </div>
+          <div class="quick-questions" role="group" aria-label="Quick questions">
+            <p class="quick-label">Quick questions:</p>
+            <div class="quick-btns">
+              <button class="quick-btn" data-q="How do I register to vote?">How do I register?</button>
+              <button class="quick-btn" data-q="What happens on voting day?">Voting day process</button>
+              <button class="quick-btn" data-q="How are votes counted?">How votes are counted</button>
+              <button class="quick-btn" data-q="Who can stand as a candidate in an election?">Who can be a candidate?</button>
+              <button class="quick-btn" data-q="What is the Model Code of Conduct in Indian elections?">Model Code of Conduct</button>
+            </div>
+          </div>
+          <div class="chat-input-wrap">
+            <label for="chat-input" class="sr-only">Type your election question</label>
+            <input type="text" id="chat-input" class="chat-input" placeholder="Ask about elections, voting, candidates..." maxlength="500" aria-describedby="chat-input-hint" />
+            <span id="chat-input-hint" class="sr-only">Press Enter or click Send to ask your question</span>
+            <button id="chat-send" class="chat-send-btn" aria-label="Send message">
+              <span aria-hidden="true">↑</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="section quiz-section" id="quiz" aria-labelledby="quiz-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 id="quiz-title" class="section-title">Test Your Knowledge</h2>
+          <p class="section-sub">Answer questions about election processes and earn your civic badge</p>
+        </div>
+        <div class="quiz-wrap" id="quiz-wrap">
+          <div class="quiz-start" id="quiz-start">
+            <div class="quiz-start-icon" aria-hidden="true">🏆</div>
+            <h3>Ready for the Election Quiz?</h3>
+            <p>5 AI-generated questions about democratic processes. New questions every time!</p>
+            <button class="btn btn-primary" id="quiz-begin-btn">Begin Quiz</button>
+          </div>
+          <div class="quiz-questions" id="quiz-questions" hidden>
+            <div class="quiz-progress">
+              <span id="quiz-progress-text">Question 1 of 5</span>
+              <div class="quiz-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="1">
+                <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+              </div>
+            </div>
+            <div id="quiz-question-wrap" aria-live="polite"></div>
+          </div>
+          <div class="quiz-result" id="quiz-result" hidden aria-live="polite">
+            <div class="result-icon" aria-hidden="true" id="result-icon">🎉</div>
+            <h3 id="result-title">Well done!</h3>
+            <p id="result-score" class="result-score"></p>
+            <p id="result-msg" class="result-msg"></p>
+            <button class="btn btn-primary" id="quiz-retry-btn">Try Again</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- POLLING STATION MAP -->
+    <section class="section map-section" id="map" aria-labelledby="map-title">
+      <div class="container">
+        <div class="section-header">
+          <h2 id="map-title" class="section-title">Find Your Polling Station</h2>
+          <p class="section-sub">Search your area to find the nearest polling centre</p>
+        </div>
+        <div class="map-search-row">
+          <label for="map-search" class="sr-only">Search for polling stations by city or area</label>
+          <input type="text" id="map-search" class="map-search-input" placeholder="Enter your city or area..." aria-label="Search polling stations" />
+          <button class="btn btn-primary" id="map-search-btn">Search</button>
+        </div>
+        <div class="map-container" id="map-container" role="application" aria-label="Interactive map showing polling stations">
+          <div id="google-map" style="width:100%;height:100%"></div>
+          <div class="map-fallback" id="map-fallback" aria-hidden="true">
+            <span>🗺️</span>
+            <p>Map loading... Make sure Maps API key is configured.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo" style="margin-bottom:10px">
+            <span aria-hidden="true">🗳</span>
+            <span class="logo-text">ElectIQ</span>
+          </div>
+          <p class="footer-tagline">Empowering citizens through election education.</p>
+        </div>
+        <div>
+          <p class="footer-heading">Official Resources</p>
+          <ul class="footer-links" role="list">
+            <li><a href="https://eci.gov.in" target="_blank" rel="noopener noreferrer">Election Commission of India</a></li>
+            <li><a href="https://www.fec.gov" target="_blank" rel="noopener noreferrer">US Federal Election Commission</a></li>
+            <li><a href="https://www.electoralcommission.org.uk" target="_blank" rel="noopener noreferrer">UK Electoral Commission</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-heading">Powered by Google</p>
+          <ul class="footer-links" role="list">
+            <li>Gemini AI</li>
+            <li>Google Maps</li>
+            <li>Firebase</li>
+            <li>Cloud Run</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Built for PromptWars Hackathon — ElectIQ v1.0.0</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>window.MAPS_API_KEY = "__MAPS_API_KEY__";</script>
+  <script src="js/app.js"></script>
+  <script>
+    // Load Google Maps lazily when map section is visible
+    const mapObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && window.MAPS_API_KEY !== "__MAPS_API_KEY__") {
+        const s = document.createElement('script');
+        s.src = `https://maps.googleapis.com/maps/api/js?key=${window.MAPS_API_KEY}&callback=initMap`;
+        s.async = true;
+        document.head.appendChild(s);
+        mapObserver.disconnect();
+      } else if (entries[0].isIntersecting) {
+        document.getElementById('map-fallback').removeAttribute('aria-hidden');
+      }
+    });
+    mapObserver.observe(document.getElementById('map'));
+  </script>
+</body>
+</html>
