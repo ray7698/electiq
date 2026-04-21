@@ -138,26 +138,67 @@ const TIMELINE_DATA = {
   ]
 };
 
-// ---- THEME TOGGLE ----
-const savedTheme = localStorage.getItem('electiq-theme') ||
-  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-document.documentElement.setAttribute('data-theme', savedTheme);
-updateThemeIcon(savedTheme);
+// ---- MOBILE NAV TOGGLE ----
+const navToggle = document.getElementById('nav-toggle');
+const mainNav = document.getElementById('main-nav');
 
-document.getElementById('theme-toggle').addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('electiq-theme', next);
-  updateThemeIcon(next);
-});
+if (navToggle && mainNav) {
+  navToggle.addEventListener('click', () => {
+    const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+    navToggle.setAttribute('aria-expanded', !isExpanded);
+    mainNav.classList.toggle('active');
+  });
 
-function updateThemeIcon(theme) {
-  const btn = document.getElementById('theme-toggle');
-  const icon = btn.querySelector('.theme-icon');
-  if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
-  btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  // Close nav on link click
+  mainNav.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      navToggle.setAttribute('aria-expanded', 'false');
+      mainNav.classList.remove('active');
+    });
+  });
 }
+
+// ---- AI ASSISTANT POPUP ----
+const aiToggle = document.getElementById('ai-toggle');
+const aiPopup = document.getElementById('ai-popup');
+const aiClose = document.getElementById('ai-close');
+
+if (aiToggle && aiPopup) {
+  aiToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Clear any inline style set by the close button fallback
+    aiPopup.style.display = ''; 
+    const isActive = aiPopup.classList.toggle('active');
+    if (isActive) {
+      setTimeout(() => {
+        const inp = document.getElementById('chat-input');
+        if (inp) inp.focus();
+      }, 100);
+    } else {
+      aiToggle.focus();
+    }
+  });
+}
+
+if (aiClose && aiPopup) {
+  aiClose.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Close button clicked');
+    aiPopup.classList.remove('active');
+    // Force direct style if class toggle fails
+    aiPopup.style.display = 'none';
+    aiToggle.focus();
+  });
+}
+
+// Close popup on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && aiPopup && aiPopup.classList.contains('active')) {
+    aiPopup.classList.remove('active');
+    aiToggle.focus();
+  }
+});
 
 // ---- TIMELINE ----
 let activeCountry = 'india';
@@ -168,18 +209,27 @@ function renderTimeline(country) {
   const container = document.getElementById('timeline-steps');
   container.innerHTML = steps.map((step, i) => `
     <div class="timeline-step${activeStep === i ? ' active' : ''}"
-      role="listitem"
+      role="button"
       tabindex="0"
       aria-label="${step.name} — ${step.duration}"
-      data-index="${i}"
-      onclick="selectStep(${i})"
-      onkeydown="if(event.key==='Enter'||event.key===' ')selectStep(${i})">
+      data-index="${i}">
       <div class="step-num" aria-hidden="true">${i + 1}</div>
       <div class="step-icon" aria-hidden="true">${step.icon}</div>
       <div class="step-name">${step.name}</div>
       <div class="step-duration">${step.duration}</div>
     </div>
   `).join('');
+
+  // Attach event listeners to timeline steps
+  container.querySelectorAll('.timeline-step').forEach(el => {
+    el.addEventListener('click', () => selectStep(parseInt(el.dataset.index)));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectStep(parseInt(el.dataset.index));
+      }
+    });
+  });
 }
 
 function selectStep(i) {
@@ -248,7 +298,7 @@ function appendMessage(role, text) {
   div.innerHTML = `
     <div class="msg-avatar" aria-hidden="true">${avatar}</div>
     <div class="msg-content">
-      <p>${text}</p>
+      ${role === 'bot' ? (typeof marked !== 'undefined' ? marked.parse(text) : `<p>${text}</p>`) : `<p>${text}</p>`}
       <span class="msg-time" aria-label="Sent at ${getTime()}">${getTime()}</span>
     </div>
   `;
@@ -259,12 +309,13 @@ function appendMessage(role, text) {
 
 function showTyping() {
   const msgs = document.getElementById('chat-messages');
+  if (!msgs) return;
   const div = document.createElement('div');
-  div.className = 'msg bot typing';
+  div.className = 'message bot typing-indicator';
   div.id = 'typing-indicator';
   div.innerHTML = `
-    <div class="msg-avatar" aria-hidden="true">🤖</div>
-    <div class="msg-content" aria-label="ElectIQ is typing">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
       <div class="typing-dots"><span></span><span></span><span></span></div>
     </div>
   `;
@@ -301,24 +352,32 @@ async function sendChat(message) {
   }
 }
 
-// Debounced send
 let sendTimer;
-document.getElementById('chat-send').addEventListener('click', () => {
+function handleSend() {
   const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  
   clearTimeout(sendTimer);
   sendTimer = setTimeout(() => {
-    sendChat(inp.value.trim());
+    sendChat(text);
     inp.value = '';
-  }, 300);
-});
+    inp.focus();
+  }, 100);
+}
 
-document.getElementById('chat-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    clearTimeout(sendTimer);
-    sendChat(e.target.value.trim());
-    e.target.value = '';
-  }
-});
+const chatSend = document.getElementById('chat-send');
+const chatInput = document.getElementById('chat-input');
+if (chatSend) chatSend.addEventListener('click', handleSend);
+if (chatInput) {
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+}
 
 document.querySelectorAll('.quick-btn').forEach(btn => {
   btn.addEventListener('click', () => sendChat(btn.dataset.q));
@@ -352,11 +411,11 @@ async function startQuiz() {
   document.getElementById('quiz-result').hidden = true;
   document.getElementById('quiz-questions').hidden = false;
   document.getElementById('quiz-question-wrap').innerHTML = `
-    <div class="skeleton" style="height:24px;margin-bottom:16px"></div>
-    <div class="skeleton" style="height:44px;margin-bottom:8px"></div>
-    <div class="skeleton" style="height:44px;margin-bottom:8px"></div>
-    <div class="skeleton" style="height:44px;margin-bottom:8px"></div>
-    <div class="skeleton" style="height:44px"></div>
+    <div class="skeleton" style="height:24px;width:80%;margin-bottom:20px"></div>
+    <div class="skeleton" style="height:50px;margin-bottom:12px"></div>
+    <div class="skeleton" style="height:50px;margin-bottom:12px"></div>
+    <div class="skeleton" style="height:50px;margin-bottom:12px"></div>
+    <div class="skeleton" style="height:50px"></div>
   `;
 
   try {
@@ -381,18 +440,26 @@ function renderQuizQuestion() {
   const bar = document.querySelector('.quiz-progress-bar');
   bar.setAttribute('aria-valuenow', quizCurrent + 1);
 
-  document.getElementById('quiz-question-wrap').innerHTML = `
+  const quizWrap = document.getElementById('quiz-question-wrap');
+  quizWrap.innerHTML = `
     <div class="quiz-question" role="group" aria-labelledby="quiz-q">
       <p class="quiz-q-text" id="quiz-q">${q.question}</p>
       <div class="quiz-options" role="radiogroup" aria-label="Answer options">
         ${q.options.map((opt, i) => `
-          <button class="quiz-option" data-index="${i}" aria-label="Option ${i+1}: ${opt}" onclick="answerQuiz(${i})">
+          <button class="quiz-option" data-index="${i}" aria-label="Option ${i+1}: ${opt}">
             <strong>${String.fromCharCode(65 + i)}.</strong> ${opt}
           </button>
         `).join('')}
       </div>
     </div>
   `;
+
+  // Attach listeners manually for reliability
+  quizWrap.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      answerQuiz(parseInt(btn.dataset.index));
+    });
+  });
 }
 
 function answerQuiz(selected) {

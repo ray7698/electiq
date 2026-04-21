@@ -49,11 +49,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://maps.googleapis.com", "https://fonts.googleapis.com", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "https://maps.googleapis.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
       styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "https://maps.googleapis.com", "https://maps.gstatic.com", "data:"],
-      connectSrc: ["'self'", "https://maps.googleapis.com"],
+      connectSrc: ["'self'", "https://maps.googleapis.com", "https://cdn.jsdelivr.net"],
     }
   }
 }));
