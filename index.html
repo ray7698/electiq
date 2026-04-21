@@ -26,6 +26,12 @@
           <a href="#timeline" class="nav-link">Timeline</a>
           <a href="#quiz" class="nav-link">Quiz</a>
           <a href="#map" class="nav-link">Find Polling Station</a>
+          <div class="lang-wrap">
+            <select id="lang-select" class="lang-select" aria-label="Select Language">
+              <option value="en">EN</option>
+              <option value="hi">HI (हिंदी)</option>
+            </select>
+          </div>
         </nav>
         <button id="nav-toggle" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
           <span class="hamburger"></span>
@@ -45,12 +51,12 @@
         <div class="hero-circle c3"></div>
       </div>
       <div class="hero-content">
-        <p class="hero-eyebrow">Your civic guide</p>
+        <p class="hero-eyebrow" id="hero-eyebrow">Your civic guide</p>
         <h1 id="hero-title" class="hero-title">Understand your vote.<br/>Shape your future.</h1>
-        <p class="hero-subtitle">ElectIQ makes democracy simple — learn the election process, ask AI anything, and become a confident citizen.</p>
+        <p class="hero-subtitle" id="hero-subtitle">ElectIQ makes democracy simple — learn the election process, ask AI anything, and become a confident citizen.</p>
         <div class="hero-ctas">
-          <a href="#timeline" class="btn btn-primary">Start Learning</a>
-          <a href="#assistant" class="btn btn-ghost">Ask AI Assistant</a>
+          <a href="#timeline" class="btn btn-primary" id="btn-start">Start Learning</a>
+          <a href="#assistant" class="btn btn-ghost" id="btn-ask">Ask AI Assistant</a>
         </div>
         <div class="hero-cards" role="list">
           <div class="hero-card" role="listitem">

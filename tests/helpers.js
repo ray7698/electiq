@@ -1,15 +1,6 @@
 // tests/helpers.js — shared utilities for testing
 
-/**
- * Sanitize user input: strip HTML, trim, limit length
- * @param {string} input
- * @param {number} maxLen
- * @returns {string}
- */
-function sanitize(input, maxLen = 500) {
-  if (typeof input !== 'string') throw new Error('Input must be a string');
-  return input.replace(/<[^>]*>/g, '').trim().slice(0, maxLen);
-}
+const { sanitize } = require('../src/utils/sanitizer');
 
 /**
  * Generate a session ID
