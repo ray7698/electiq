@@ -1,6 +1,7 @@
 node_modules/
 .env
 env.yaml
+.env.*
 coverage/
 *.log
 serviceaccount.json

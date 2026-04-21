@@ -3,22 +3,27 @@
  * Google Services: Gemini API, Firebase Realtime DB, Cloud Run, Google Maps (frontend)
  */
 
+require('dotenv').config();
 const express = require('express');
-const helmet  = require('helmet');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const path = require('path');
-const fs   = require('fs');
+const fs = require('fs');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const app  = express();
+// Ensure essential env vars are set or at least defined
+process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+process.env.MAPS_API_KEY = process.env.MAPS_API_KEY || '';
+
+const app = express();
 const PORT = process.env.PORT || 8080;
 
 // ---- GOOGLE SERVICES INIT ----
 
 // 1. Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const geminiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const geminiModel = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
 // 2. Firebase Admin
 let db = null;
@@ -45,10 +50,10 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "https://maps.googleapis.com", "https://fonts.googleapis.com", "'unsafe-inline'"],
-      styleSrc:  ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
-      fontSrc:   ["'self'", "https://fonts.gstatic.com"],
-      imgSrc:    ["'self'", "https://maps.googleapis.com", "https://maps.gstatic.com", "data:"],
-      connectSrc:["'self'", "https://maps.googleapis.com"],
+      styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "https://maps.googleapis.com", "https://maps.gstatic.com", "data:"],
+      connectSrc: ["'self'", "https://maps.googleapis.com"],
     }
   }
 }));
@@ -58,7 +63,7 @@ app.use(express.json({ limit: '10kb' }));
 
 // Rate limiting
 const globalLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false });
-const chatLimiter   = rateLimit({ windowMs: 60_000, max: 20, standardHeaders: true, legacyHeaders: false });
+const chatLimiter = rateLimit({ windowMs: 60_000, max: 20, standardHeaders: true, legacyHeaders: false });
 app.use(globalLimiter);
 
 // ---- SIMPLE IN-MEMORY CACHE ----
@@ -196,13 +201,15 @@ app.post('/api/quiz', async (req, res) => {
   } catch (err) {
     console.error('Quiz error:', err.message);
     // Fallback questions
-    res.json({ questions: [
-      { question: "What is the minimum voting age in India?", options: ["16", "18", "21", "25"], correct: "18", explanation: "Indian citizens must be 18 years or older to vote in any election." },
-      { question: "How many electoral votes are needed to win the US Presidency?", options: ["218", "270", "300", "435"], correct: "270", explanation: "A candidate needs 270 of 538 electoral votes to win the US Presidential election." },
-      { question: "What voting system does the UK use for general elections?", options: ["Proportional Representation", "Alternative Vote", "First-Past-The-Post", "Single Transferable Vote"], correct: "First-Past-The-Post", explanation: "The UK uses FPTP where the candidate with the most votes in each constituency wins." },
-      { question: "What is the Model Code of Conduct in India?", options: ["A manual for election officials", "Guidelines political parties must follow during elections", "A voter registration form", "Rules for counting votes"], correct: "Guidelines political parties must follow during elections", explanation: "The MCC is a set of guidelines issued by the ECI to regulate the conduct of political parties and candidates during elections." },
-      { question: "What is a 'hung parliament'?", options: ["When parliament is dissolved", "When no party wins an outright majority", "When the Prime Minister resigns", "When elections are postponed"], correct: "When no party wins an outright majority", explanation: "A hung parliament occurs when no single party wins enough seats for a majority, requiring coalition negotiations." },
-    ]});
+    res.json({
+      questions: [
+        { question: "What is the minimum voting age in India?", options: ["16", "18", "21", "25"], correct: "18", explanation: "Indian citizens must be 18 years or older to vote in any election." },
+        { question: "How many electoral votes are needed to win the US Presidency?", options: ["218", "270", "300", "435"], correct: "270", explanation: "A candidate needs 270 of 538 electoral votes to win the US Presidential election." },
+        { question: "What voting system does the UK use for general elections?", options: ["Proportional Representation", "Alternative Vote", "First-Past-The-Post", "Single Transferable Vote"], correct: "First-Past-The-Post", explanation: "The UK uses FPTP where the candidate with the most votes in each constituency wins." },
+        { question: "What is the Model Code of Conduct in India?", options: ["A manual for election officials", "Guidelines political parties must follow during elections", "A voter registration form", "Rules for counting votes"], correct: "Guidelines political parties must follow during elections", explanation: "The MCC is a set of guidelines issued by the ECI to regulate the conduct of political parties and candidates during elections." },
+        { question: "What is a 'hung parliament'?", options: ["When parliament is dissolved", "When no party wins an outright majority", "When the Prime Minister resigns", "When elections are postponed"], correct: "When no party wins an outright majority", explanation: "A hung parliament occurs when no single party wins enough seats for a majority, requiring coalition negotiations." },
+      ]
+    });
   }
 });
 
@@ -237,11 +244,13 @@ app.post('/api/score', async (req, res) => {
 });
 
 // ---- START ----
-app.listen(PORT, () => {
-  console.log(`🗳 ElectIQ running on port ${PORT}`);
-  console.log(`🤖 Gemini: ${process.env.GEMINI_API_KEY ? '✅' : '❌ missing key'}`);
-  console.log(`🔥 Firebase: ${db ? '✅' : '⚠️ not configured'}`);
-  console.log(`🗺  Maps: ${process.env.MAPS_API_KEY ? '✅' : '⚠️ not configured'}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🗳 ElectIQ running on port ${PORT}`);
+    console.log(`🤖 Gemini: ${process.env.GEMINI_API_KEY ? '✅' : '❌ missing key'}`);
+    console.log(`🔥 Firebase: ${db ? '✅' : '⚠️ not configured'}`);
+    console.log(`🗺  Maps: ${process.env.MAPS_API_KEY ? '✅' : '⚠️ not configured'}`);
+  });
+}
 
 module.exports = app;
