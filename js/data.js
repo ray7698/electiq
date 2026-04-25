@@ -224,6 +224,19 @@ export let TIMELINE_DATA = {
   ],
 };
 
+// Original English data to fall back on for translation
+export const DEFAULT_TIMELINE_DATA = JSON.parse(JSON.stringify(TIMELINE_DATA));
+
+// Static strings for UI translation
+export const STATIC_UI_BASE = {
+  'hero-eyebrow': 'Your civic guide',
+  'hero-title': 'Understand your vote.\nShape your future.',
+  'hero-subtitle':
+    'ElectIQ makes democracy simple — learn the election process, ask AI anything, and become a confident citizen.',
+  'btn-start': 'Start Learning',
+  'btn-ask': 'Ask AI Assistant',
+};
+
 export function setTimelineData(data) {
   Object.assign(TIMELINE_DATA, data);
 }

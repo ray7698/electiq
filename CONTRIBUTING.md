@@ -29,11 +29,11 @@ First off, thank you for considering contributing to ElectIQ! We welcome contrib
 
 ### Coding Standards
 
-- **JavaScript**: Use modern ES6+ features. 
+- **JavaScript**: Use modern ES6+ features.
   - **Frontend**: Follow the modular structure in `js/`. Export/Import modules using ES6 syntax.
   - **Backend**: Use `AppError` for operational errors and `catchAsync` for controllers.
 - **Linting & Formatting**: We use **ESLint** and **Prettier**. Run `npm run lint` before submitting any PR.
-- **CSS**: Use clean, responsive Vanilla CSS. 
+- **CSS**: Use clean, responsive Vanilla CSS.
 - **Security**: Always prioritize user data privacy and input sanitization.
 
 ### Testing

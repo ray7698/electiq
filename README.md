@@ -74,12 +74,14 @@ electiq/
 ## Setup & Run
 
 1. **Install Dependencies**:
+
 ```bash
 npm install
 ```
 
 2. **Configure Environment**:
-Create a `.env` file (see `.env.example`):
+   Create a `.env` file (see `.env.example`):
+
 ```bash
 GEMINI_API_KEY=your_key
 FIREBASE_SERVICE_ACCOUNT='{"type":"service_account",...}'
@@ -87,17 +89,20 @@ MAPS_API_KEY=your_key
 ```
 
 3. **Run Development Server**:
+
 ```bash
 npm run dev
 ```
 
 4. **Lint & Format**:
+
 ```bash
 npm run lint    # Check for errors
 npm run format  # Auto-fix formatting
 ```
 
 5. **Run Tests**:
+
 ```bash
 npm test
 npm run test:coverage
@@ -122,12 +127,12 @@ gcloud run deploy electiq \
 > [!IMPORTANT]
 > ElectIQ uses **Fail-Fast** validation. The server will not start if required variables are missing.
 
-| Variable                   | Required | Description                         |
-| -------------------------- | -------- | ----------------------------------- |
-| `GEMINI_API_KEY`           | **Yes**  | Google AI Studio API key            |
-| `FIREBASE_SERVICE_ACCOUNT` | **Yes**  | Firebase Admin SDK JSON string      |
-| `MAPS_API_KEY`             | No       | Google Maps JavaScript API key      |
-| `PORT`                     | No       | Server port (default: 8080)         |
+| Variable                   | Required | Description                    |
+| -------------------------- | -------- | ------------------------------ |
+| `GEMINI_API_KEY`           | **Yes**  | Google AI Studio API key       |
+| `FIREBASE_SERVICE_ACCOUNT` | **Yes**  | Firebase Admin SDK JSON string |
+| `MAPS_API_KEY`             | No       | Google Maps JavaScript API key |
+| `PORT`                     | No       | Server port (default: 8080)    |
 
 ---
 

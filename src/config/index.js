@@ -13,7 +13,9 @@ const envVarsSchema = Joi.object({
   PORT: Joi.number().default(8080),
   GEMINI_API_KEY: Joi.string().required().description('Gemini AI API Key'),
   MAPS_API_KEY: Joi.string().allow('').optional().default(''),
-  FIREBASE_SERVICE_ACCOUNT: Joi.string().required().description('Firebase Service Account JSON string'),
+  FIREBASE_SERVICE_ACCOUNT: Joi.string()
+    .required()
+    .description('Firebase Service Account JSON string'),
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
 })
   .unknown()
