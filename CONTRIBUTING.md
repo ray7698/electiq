@@ -29,8 +29,11 @@ First off, thank you for considering contributing to ElectIQ! We welcome contrib
 
 ### Coding Standards
 
-- **JavaScript**: Use modern ES6+ features. Follow the existing style in `server.js` and `js/app.js`.
-- **CSS**: Use clean, responsive Vanilla CSS. Avoid adding external styling libraries unless discussed.
+- **JavaScript**: Use modern ES6+ features. 
+  - **Frontend**: Follow the modular structure in `js/`. Export/Import modules using ES6 syntax.
+  - **Backend**: Use `AppError` for operational errors and `catchAsync` for controllers.
+- **Linting & Formatting**: We use **ESLint** and **Prettier**. Run `npm run lint` before submitting any PR.
+- **CSS**: Use clean, responsive Vanilla CSS. 
 - **Security**: Always prioritize user data privacy and input sanitization.
 
 ### Testing
@@ -38,6 +41,8 @@ First off, thank you for considering contributing to ElectIQ! We welcome contrib
 We use Jest for testing. All new features should include appropriate tests.
 
 ```bash
+npm run lint          # Check for code style issues
+npm run format        # Auto-fix formatting
 npm test              # Run all tests
 npm run test:coverage # Check test coverage
 ```

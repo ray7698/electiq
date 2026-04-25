@@ -50,46 +50,54 @@ Cloud Run (Express Server)
 
 ```
 electiq/
-├── index.html          # Single-page frontend
+├── index.html          # Single-page entry
 ├── css/style.css       # Responsive styles with dark mode
-├── js/app.js           # Frontend logic (timeline, chat, quiz, maps)
-├── server.js           # Express backend + all API endpoints
-├── package.json        # Dependencies and scripts
+├── js/                 # Modular Frontend (ES6)
+│   ├── main.js         # Entry point
+│   ├── ui.js           # UI & Translation logic
+│   ├── chat.js         # AI Assistant
+│   ├── quiz.js         # Interactive Quiz
+│   └── ...             # state, data, timeline, map
+├── src/                # Modular Backend (Node.js)
+│   ├── app.js          # Express app setup
+│   ├── config/         # Strict env validation (Joi)
+│   ├── controllers/    # API logic (AppError integration)
+│   ├── services/       # External API integrations
+│   └── utils/          # Logger, Sanitizer, AppError
+├── server.js           # Server entry point
 ├── Dockerfile          # Cloud Run deployment
-├── tests/              # Jest test suite
-│   ├── unit.test.js
-│   ├── api.test.js
-│   ├── security.test.js
-│   └── integration.test.js
-└── tests/helpers.js    # Shared test utilities
+└── tests/              # Jest test suite (39+ tests)
 ```
 
 ---
 
 ## Setup & Run
 
+1. **Install Dependencies**:
 ```bash
-git clone https://github.com/YOUR_USERNAME/electiq
-cd electiq
 npm install
 ```
 
-Create a `.env` file:
-
-```
-GEMINI_API_KEY=your_gemini_key
-MAPS_API_KEY=your_maps_key
-FIREBASE_SERVICE_ACCOUNT={"type":"service_account",...}
-PORT=8080
-```
-
+2. **Configure Environment**:
+Create a `.env` file (see `.env.example`):
 ```bash
-node server.js
-# Visit http://localhost:8080
+GEMINI_API_KEY=your_key
+FIREBASE_SERVICE_ACCOUNT='{"type":"service_account",...}'
+MAPS_API_KEY=your_key
 ```
 
-Run tests:
+3. **Run Development Server**:
+```bash
+npm run dev
+```
 
+4. **Lint & Format**:
+```bash
+npm run lint    # Check for errors
+npm run format  # Auto-fix formatting
+```
+
+5. **Run Tests**:
 ```bash
 npm test
 npm run test:coverage
@@ -104,25 +112,28 @@ gcloud run deploy electiq \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
-  --env-vars-file env.yaml
+  --set-env-vars "GEMINI_API_KEY=...,FIREBASE_SERVICE_ACCOUNT=..."
 ```
 
 ---
 
 ## Environment Variables
 
-| Variable                   | Required    | Description                         |
-| -------------------------- | ----------- | ----------------------------------- |
-| `GEMINI_API_KEY`           | Yes         | Google AI Studio API key            |
-| `MAPS_API_KEY`             | Yes         | Google Maps JavaScript API key      |
-| `FIREBASE_SERVICE_ACCOUNT` | Recommended | Firebase Admin SDK JSON (as string) |
-| `PORT`                     | No          | Server port (default: 8080)         |
+> [!IMPORTANT]
+> ElectIQ uses **Fail-Fast** validation. The server will not start if required variables are missing.
+
+| Variable                   | Required | Description                         |
+| -------------------------- | -------- | ----------------------------------- |
+| `GEMINI_API_KEY`           | **Yes**  | Google AI Studio API key            |
+| `FIREBASE_SERVICE_ACCOUNT` | **Yes**  | Firebase Admin SDK JSON string      |
+| `MAPS_API_KEY`             | No       | Google Maps JavaScript API key      |
+| `PORT`                     | No       | Server port (default: 8080)         |
 
 ---
 
 ## Assumptions Made
 
-- Polling station locations are mock data for demonstration; production would use real ECI/government APIs
-- Election timeline data is informational; exact dates vary by election cycle
-- Firebase gracefully degrades — app works without it
-- Quiz questions are AI-generated; quality depends on Gemini's knowledge
+- Polling station locations are mock data for demonstration.
+- Election timeline data is informational; exact dates vary by cycle.
+- **Fail-Fast Policy**: Backend requires Gemini and Firebase for a stable experience.
+- Quiz questions are AI-generated; quality depends on Gemini's knowledge base.
