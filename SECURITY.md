@@ -23,11 +23,11 @@ If you discover a security vulnerability, please do NOT open a public issue. Ins
 
 ElectIQ implements several layers of security to protect the platform:
 
-*   **Content Security Policy (CSP)**: Managed via `helmet` to prevent XSS and unauthorized resource loading.
-*   **Rate Limiting**: Applied to all API endpoints to prevent brute force and DoS attacks.
-*   **Input Sanitization**: All user-provided text is sanitized to remove HTML tags and limited in length.
-*   **Secure API Keys**: All sensitive API keys are managed via environment variables and never exposed to the client-side (except for the Maps API key, which is restricted via Google Cloud Console).
-*   **Minimal Dependencies**: We keep our dependency tree small and updated to reduce the attack surface.
+- **Content Security Policy (CSP)**: Managed via `helmet` to prevent XSS and unauthorized resource loading.
+- **Rate Limiting**: Applied to all API endpoints to prevent brute force and DoS attacks.
+- **Input Sanitization**: All user-provided text is sanitized to remove HTML tags and limited in length.
+- **Secure API Keys**: All sensitive API keys are managed via environment variables and never exposed to the client-side (except for the Maps API key, which is restricted via Google Cloud Console).
+- **Minimal Dependencies**: We keep our dependency tree small and updated to reduce the attack surface.
 
 ## Data Privacy
 

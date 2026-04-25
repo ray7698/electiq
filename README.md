@@ -1,9 +1,11 @@
 # ElectIQ — AI-Powered Election Education Assistant
+
 ### Built for PromptWars Hackathon @ promptwars.in
 
 ---
 
 ## Chosen Vertical
+
 **Election Process Education** — An interactive AI assistant that helps citizens understand democratic processes, election timelines, and their civic rights.
 
 ---
@@ -11,6 +13,7 @@
 ## Solution Overview
 
 ElectIQ is a full-stack web application that makes election education accessible to every citizen through:
+
 - Interactive step-by-step election timelines (India, USA, UK)
 - Gemini AI-powered chat assistant for civic questions
 - Dynamic AI-generated quiz with scoring
@@ -34,12 +37,12 @@ Cloud Run (Express Server)
      └──► Google Maps JS API ──► Polling station locator (frontend)
 ```
 
-| Service | Usage |
-|---|---|
+| Service                             | Usage                                                           |
+| ----------------------------------- | --------------------------------------------------------------- |
 | **Gemini API** (`gemini-2.0-flash`) | Powers the election chat assistant and generates quiz questions |
-| **Firebase Realtime Database** | Stores chat history and quiz scores persistently |
-| **Google Maps JavaScript API** | Interactive polling station locator map |
-| **Google Cloud Run** | Serverless deployment of the Node.js backend |
+| **Firebase Realtime Database**      | Stores chat history and quiz scores persistently                |
+| **Google Maps JavaScript API**      | Interactive polling station locator map                         |
+| **Google Cloud Run**                | Serverless deployment of the Node.js backend                    |
 
 ---
 
@@ -72,6 +75,7 @@ npm install
 ```
 
 Create a `.env` file:
+
 ```
 GEMINI_API_KEY=your_gemini_key
 MAPS_API_KEY=your_maps_key
@@ -85,6 +89,7 @@ node server.js
 ```
 
 Run tests:
+
 ```bash
 npm test
 npm run test:coverage
@@ -106,12 +111,12 @@ gcloud run deploy electiq \
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | Yes | Google AI Studio API key |
-| `MAPS_API_KEY` | Yes | Google Maps JavaScript API key |
+| Variable                   | Required    | Description                         |
+| -------------------------- | ----------- | ----------------------------------- |
+| `GEMINI_API_KEY`           | Yes         | Google AI Studio API key            |
+| `MAPS_API_KEY`             | Yes         | Google Maps JavaScript API key      |
 | `FIREBASE_SERVICE_ACCOUNT` | Recommended | Firebase Admin SDK JSON (as string) |
-| `PORT` | No | Server port (default: 8080) |
+| `PORT`                     | No          | Server port (default: 8080)         |
 
 ---
 

@@ -4,16 +4,11 @@ const firebaseService = require('../services/firebase.service');
 const { catchAsync } = require('../middleware/error.handler');
 const { sanitize } = require('../utils/sanitizer');
 const translationService = require('../services/translation.service');
-const config = require('../config');
+const logger = require('../utils/logger');
+const constants = require('../constants');
+const cache = require('../utils/cache');
 
-// ---- SIMPLE IN-MEMORY CACHE ----
-const cache = new Map();
-
-function cacheGet(key) { return cache.get(key); }
-function cacheSet(key, value) {
-  if (cache.size >= config.cacheMax) cache.delete(cache.keys().next().value);
-  cache.set(key, value);
-}
+const AppError = require('../utils/AppError');
 
 /**
  * Controller for AI Chat
@@ -21,13 +16,13 @@ function cacheSet(key, value) {
 const chat = catchAsync(async (req, res) => {
   // Validation schema
   const schema = Joi.object({
-    message: Joi.string().trim().max(500).required(),
-    lang: Joi.string().length(2).optional().default('en')
+    message: Joi.string().trim().max(constants.MAX_MESSAGE_LEN).required(),
+    lang: Joi.string().length(2).optional().default(constants.DEFAULT_LANG),
   });
 
   const { error, value } = schema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    throw new AppError(error.details[0].message, 400);
   }
 
   const { message: rawMessage, lang } = value;
@@ -35,7 +30,7 @@ const chat = catchAsync(async (req, res) => {
   const cacheKey = `${lang}:${message.toLowerCase()}`;
 
   // Check cache
-  const cached = cacheGet(cacheKey);
+  const cached = cache.get(cacheKey);
   if (cached) {
     return res.json({ reply: cached, cached: true });
   }
@@ -43,20 +38,22 @@ const chat = catchAsync(async (req, res) => {
   let reply = await geminiService.getChatReply(message);
 
   // Translate if necessary
-  if (lang && lang !== 'en') {
+  if (lang && lang !== constants.DEFAULT_LANG) {
     reply = await translationService.translateText(reply, lang);
   }
 
   // Cache the result
-  cacheSet(cacheKey, reply);
+  cache.set(cacheKey, reply);
 
   // Log to firebase (async, don't wait for response)
   const sessionId = req.headers['x-session-id'] || `session_${Date.now()}`;
-  firebaseService.logConversation({
-    userMessage: message,
-    botReply: reply,
-    sessionId
-  }).catch(err => console.warn('Firebase log failed:', err.message));
+  firebaseService
+    .logConversation({
+      userMessage: message,
+      botReply: reply,
+      sessionId,
+    })
+    .catch((err) => logger.warn('Firebase log failed:', err.message));
 
   res.json({ reply });
 });
@@ -65,17 +62,21 @@ const chat = catchAsync(async (req, res) => {
  * Controller for Quiz Generation
  */
 const getQuiz = catchAsync(async (req, res) => {
-  const lang = req.body?.lang || 'en';
+  const lang = req.body?.lang || constants.DEFAULT_LANG;
   let questions = await geminiService.generateQuiz();
 
-  if (lang && lang !== 'en') {
+  if (lang && lang !== constants.DEFAULT_LANG) {
     // Translate each question, option and explanation
-    questions = await Promise.all(questions.map(async (q) => ({
-      question: await translationService.translateText(q.question, lang),
-      options: await Promise.all(q.options.map(opt => translationService.translateText(opt, lang))),
-      correct: await translationService.translateText(q.correct, lang),
-      explanation: await translationService.translateText(q.explanation, lang)
-    })));
+    questions = await Promise.all(
+      questions.map(async (q) => ({
+        question: await translationService.translateText(q.question, lang),
+        options: await Promise.all(
+          q.options.map((opt) => translationService.translateText(opt, lang)),
+        ),
+        correct: await translationService.translateText(q.correct, lang),
+        explanation: await translationService.translateText(q.explanation, lang),
+      })),
+    );
   }
 
   res.json({ questions });
@@ -86,14 +87,14 @@ const getQuiz = catchAsync(async (req, res) => {
  */
 const translateUI = catchAsync(async (req, res) => {
   const { items, lang } = req.body;
-  if (!items || !lang || lang === 'en') return res.json({ items });
+  if (!items || !lang || lang === constants.DEFAULT_LANG) return res.json({ items });
 
   const keys = Object.keys(items);
   const values = Object.values(items);
-  
+
   // Translate all values at once
   const translatedValues = await Promise.all(
-    values.map(val => translationService.translateText(val, lang))
+    values.map((val) => translationService.translateText(val, lang)),
   );
 
   const translatedItems = {};
@@ -107,5 +108,5 @@ const translateUI = catchAsync(async (req, res) => {
 module.exports = {
   chat,
   getQuiz,
-  translateUI
+  translateUI,
 };

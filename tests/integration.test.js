@@ -1,28 +1,39 @@
 // tests/integration.test.js
 
-const mockGeminiReply = 'In India, you can register to vote at voters.eci.gov.in or your local ERO office.';
+const mockGeminiReply =
+  'In India, you can register to vote at voters.eci.gov.in or your local ERO office.';
 const mockQuizData = [
-  { question: "What is the voting age in India?", options: ["16","18","21","25"], correct: "18", explanation: "18 is the minimum voting age." }
+  {
+    question: 'What is the voting age in India?',
+    options: ['16', '18', '21', '25'],
+    correct: '18',
+    explanation: '18 is the minimum voting age.',
+  },
 ];
 
 jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: () => ({
       startChat: () => ({
-        sendMessage: jest.fn().mockResolvedValue({ response: { text: () => mockGeminiReply } })
+        sendMessage: jest.fn().mockResolvedValue({ response: { text: () => mockGeminiReply } }),
       }),
       generateContent: jest.fn().mockResolvedValue({
-        response: { text: () => JSON.stringify(mockQuizData) }
-      })
-    })
-  }))
+        response: { text: () => JSON.stringify(mockQuizData) },
+      }),
+    }),
+  })),
 }));
 
 const mockFirebasePush = jest.fn().mockResolvedValue({});
 const mockFirebaseOnce = jest.fn().mockResolvedValue({
   val: () => ({
-    'key1': { timestamp: 1000, userMessage: 'test question', botReply: 'test answer', sessionId: 'session_1' }
-  })
+    key1: {
+      timestamp: 1000,
+      userMessage: 'test question',
+      botReply: 'test answer',
+      sessionId: 'session_1',
+    },
+  }),
 });
 
 jest.mock('firebase-admin', () => ({
@@ -32,9 +43,9 @@ jest.mock('firebase-admin', () => ({
   database: () => ({
     ref: () => ({
       push: mockFirebasePush,
-      orderByChild: () => ({ limitToLast: () => ({ once: mockFirebaseOnce }) })
-    })
-  })
+      orderByChild: () => ({ limitToLast: () => ({ once: mockFirebaseOnce }) }),
+    }),
+  }),
 }));
 
 const request = require('supertest');
@@ -42,12 +53,17 @@ const request = require('supertest');
 describe('Full chat flow (integration)', () => {
   let app;
   beforeAll(() => {
-    process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({ project_id: 'test', type: 'service_account' });
+    process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({
+      project_id: 'test',
+      type: 'service_account',
+    });
     app = require('../server');
   });
 
   test('sends message, gets Gemini reply', async () => {
-    const res = await request(app).post('/api/chat').send({ message: 'How do I register to vote in India?' });
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: 'How do I register to vote in India?' });
     expect(res.status).toBe(200);
     expect(res.body.reply).toBe(mockGeminiReply);
   });

@@ -1,20 +1,39 @@
 /**
  * Centralized Configuration logic for ElectIQ
  */
+const Joi = require('joi');
+const logger = require('../utils/logger');
+const constants = require('../constants');
+
+// Load environment variables
 require('dotenv').config();
 
-const config = {
-  port: process.env.PORT || 8080,
-  geminiApiKey: process.env.GEMINI_API_KEY || '',
-  mapsApiKey: process.env.MAPS_API_KEY || '',
-  firebaseServiceAccount: process.env.FIREBASE_SERVICE_ACCOUNT || null,
-  isProd: process.env.NODE_ENV === 'production',
-  cacheMax: 50,
-};
+// Define validation schema
+const envVarsSchema = Joi.object({
+  PORT: Joi.number().default(8080),
+  GEMINI_API_KEY: Joi.string().required().description('Gemini AI API Key'),
+  MAPS_API_KEY: Joi.string().allow('').optional().default(''),
+  FIREBASE_SERVICE_ACCOUNT: Joi.string().required().description('Firebase Service Account JSON string'),
+  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+})
+  .unknown()
+  .required();
 
-// Simple validation
-if (!config.geminiApiKey) {
-  console.warn('⚠️ WARNING: GEMINI_API_KEY is not set');
+const { error, value: envVars } = envVarsSchema.validate(process.env);
+
+if (error) {
+  logger.error(`[CONFIG ERROR] Invalid environment variables: ${error.message}`);
+  throw new Error(`Config validation error: ${error.message}`);
 }
+
+const config = {
+  port: envVars.PORT,
+  geminiApiKey: envVars.GEMINI_API_KEY,
+  mapsApiKey: envVars.MAPS_API_KEY,
+  firebaseServiceAccount: envVars.FIREBASE_SERVICE_ACCOUNT,
+  isProd: envVars.NODE_ENV === 'production',
+  isTest: envVars.NODE_ENV === 'test',
+  cacheMax: constants.CACHE_MAX_SIZE,
+};
 
 module.exports = config;

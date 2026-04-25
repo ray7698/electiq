@@ -1,6 +1,9 @@
 const Joi = require('joi');
 const firebaseService = require('../services/firebase.service');
 const { catchAsync } = require('../middleware/error.handler');
+const constants = require('../constants');
+
+const AppError = require('../utils/AppError');
 
 /**
  * Get chat history (Private per session)
@@ -8,8 +11,8 @@ const { catchAsync } = require('../middleware/error.handler');
 const getHistory = catchAsync(async (req, res) => {
   const sessionId = req.headers['x-session-id'];
   if (!sessionId) return res.json([]);
-  
-  const history = await firebaseService.getHistory(sessionId, 10);
+
+  const history = await firebaseService.getHistory(sessionId, constants.HISTORY_LIMIT);
   res.json(history);
 });
 
@@ -20,19 +23,19 @@ const saveScore = catchAsync(async (req, res) => {
   const schema = Joi.object({
     score: Joi.number().required(),
     total: Joi.number().required(),
-    percentage: Joi.number().optional()
+    percentage: Joi.number().optional(),
   });
 
   const { error, value } = schema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    throw new AppError(error.details[0].message, 400);
   }
 
   const sessionId = req.headers['x-session-id'] || `session_${Date.now()}`;
   await firebaseService.saveScore({
     ...value,
     percentage: value.percentage || Math.round((value.score / value.total) * 100),
-    sessionId
+    sessionId,
   });
 
   res.json({ saved: true });
@@ -40,5 +43,5 @@ const saveScore = catchAsync(async (req, res) => {
 
 module.exports = {
   getHistory,
-  saveScore
+  saveScore,
 };

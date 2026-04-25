@@ -1,21 +1,30 @@
 // tests/api.test.js
 // API endpoint tests using supertest
 
+global.mockGeminiResponseText = JSON.stringify([
+  {
+    question: 'Test Q?',
+    options: ['A', 'B', 'C', 'D'],
+    correct: 'A',
+    explanation: 'Test explanation.',
+  },
+]);
+
 jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: () => ({
       startChat: () => ({
-        sendMessage: async () => ({ response: { text: () => 'Mocked Gemini reply about elections.' } })
+        sendMessage: async () => ({
+          response: { text: () => 'Mocked Gemini reply about elections.' },
+        }),
       }),
       generateContent: async () => ({
         response: {
-          text: () => JSON.stringify([
-            { question: "Test Q?", options: ["A","B","C","D"], correct: "A", explanation: "Test explanation." }
-          ])
-        }
-      })
-    })
-  }))
+          text: () => global.mockGeminiResponseText,
+        },
+      }),
+    }),
+  })),
 }));
 
 jest.mock('firebase-admin', () => ({
@@ -25,9 +34,11 @@ jest.mock('firebase-admin', () => ({
   database: () => ({
     ref: () => ({
       push: jest.fn().mockResolvedValue({}),
-      orderByChild: () => ({ limitToLast: () => ({ once: jest.fn().mockResolvedValue({ val: () => ({}) }) }) })
-    })
-  })
+      orderByChild: () => ({
+        limitToLast: () => ({ once: jest.fn().mockResolvedValue({ val: () => ({}) }) }),
+      }),
+    }),
+  }),
 }));
 
 const request = require('supertest');
@@ -57,7 +68,9 @@ describe('GET /', () => {
 
 describe('POST /api/chat', () => {
   test('valid message returns 200 with reply', async () => {
-    const res = await request(app).post('/api/chat').send({ message: 'How do I register to vote?' });
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: 'How do I register to vote?' });
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('reply');
     expect(typeof res.body.reply).toBe('string');
@@ -71,7 +84,9 @@ describe('POST /api/chat', () => {
     expect(res.status).toBe(400);
   });
   test('message over 500 chars returns 400', async () => {
-    const res = await request(app).post('/api/chat').send({ message: 'a'.repeat(501) });
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: 'a'.repeat(501) });
     expect(res.status).toBe(400);
   });
   test('non-string message returns 400', async () => {
@@ -85,11 +100,49 @@ describe('POST /api/chat', () => {
 });
 
 describe('POST /api/quiz', () => {
+  afterEach(() => {
+    global.mockGeminiResponseText = JSON.stringify([
+      {
+        question: 'Test Q?',
+        options: ['A', 'B', 'C', 'D'],
+        correct: 'A',
+        explanation: 'Test explanation.',
+      },
+    ]);
+  });
+
   test('returns 200 with questions array', async () => {
     const res = await request(app).post('/api/quiz');
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('questions');
     expect(Array.isArray(res.body.questions)).toBe(true);
+  });
+
+  test('quiz handles malformed Gemini JSON gracefully', async () => {
+    global.mockGeminiResponseText = 'garbage response not json';
+    const res = await request(app).post('/api/quiz');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('questions');
+    expect(Array.isArray(res.body.questions)).toBe(true);
+    expect(res.body.questions.length).toBe(5);
+  });
+});
+
+describe('POST /api/translate-ui', () => {
+  test('returns original items if lang is en', async () => {
+    const items = { title: 'Hello', desc: 'World' };
+    const res = await request(app).post('/api/translate-ui').send({ lang: 'en', items });
+    expect(res.status).toBe(200);
+    expect(res.body.items).toEqual(items);
+  });
+
+  test('returns translated or fallback items for non-en language', async () => {
+    const items = { title: 'Hello', desc: 'World' };
+    const res = await request(app).post('/api/translate-ui').send({ lang: 'hi', items });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('items');
+    expect(res.body.items).toHaveProperty('title');
+    expect(res.body.items).toHaveProperty('desc');
   });
 });
 

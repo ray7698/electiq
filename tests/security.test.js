@@ -4,11 +4,23 @@ jest.mock('@google/generative-ai', () => ({
   GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: () => ({
       startChat: () => ({ sendMessage: async () => ({ response: { text: () => 'reply' } }) }),
-      generateContent: async () => ({ response: { text: () => '[]' } })
-    })
-  }))
+      generateContent: async () => ({ response: { text: () => '[]' } }),
+    }),
+  })),
 }));
-jest.mock('firebase-admin', () => ({ apps: [], initializeApp: jest.fn(), credential: { cert: jest.fn() }, database: () => ({ ref: () => ({ push: jest.fn(), orderByChild: () => ({ limitToLast: () => ({ once: jest.fn().mockResolvedValue({ val: () => ({}) }) }) }) }) }) }));
+jest.mock('firebase-admin', () => ({
+  apps: [],
+  initializeApp: jest.fn(),
+  credential: { cert: jest.fn() },
+  database: () => ({
+    ref: () => ({
+      push: jest.fn(),
+      orderByChild: () => ({
+        limitToLast: () => ({ once: jest.fn().mockResolvedValue({ val: () => ({}) }) }),
+      }),
+    }),
+  }),
+}));
 
 const request = require('supertest');
 const app = require('../server');
@@ -34,14 +46,18 @@ describe('Input sanitization', () => {
     expect(res.status).toBe(200);
   });
   test('script injection returns safe response', async () => {
-    const res = await request(app).post('/api/chat').send({ message: '<script>alert("xss")</script>' });
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: '<script>alert("xss")</script>' });
     expect([200, 400]).toContain(res.status);
     if (res.status === 200) {
       expect(res.body.reply).toBeDefined();
     }
   });
   test('very long input rejected', async () => {
-    const res = await request(app).post('/api/chat').send({ message: 'x'.repeat(1000) });
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: 'x'.repeat(1000) });
     expect(res.status).toBe(400);
   });
 });

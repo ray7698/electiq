@@ -1,16 +1,23 @@
+const logger = require('../utils/logger');
+
 /**
  * Global Error Handler Middleware
  */
-function errorHandler(err, req, res, next) {
-  console.error(`[ERROR] ${err.message}`);
-  
+function errorHandler(err, req, res, _next) {
   const statusCode = err.statusCode || 500;
+  const status = err.status || 'error';
   const message = err.message || 'Internal Server Error';
-  
+
+  if (statusCode === 500) {
+    logger.error(`[CRITICAL] ${err.stack}`);
+  } else {
+    logger.warn(`[${status.toUpperCase()}] ${message}`);
+  }
+
   res.status(statusCode).json({
-    status: 'error',
+    status,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 }
 
@@ -23,5 +30,5 @@ const catchAsync = (fn) => (req, res, next) => {
 
 module.exports = {
   errorHandler,
-  catchAsync
+  catchAsync,
 };

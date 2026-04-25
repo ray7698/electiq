@@ -1,5 +1,6 @@
 const { Translate } = require('@google-cloud/translate').v2;
 const config = require('../config');
+const logger = require('../utils/logger');
 
 // Initialize the Translate client
 // It will automatically use GOOGLE_APPLICATION_CREDENTIALS if set,
@@ -13,9 +14,9 @@ try {
     options.credentials = creds;
   }
   translate = new Translate(options);
-  console.log('✅ Translation Service initialized');
+  logger.info('✅ Translation Service initialized');
 } catch (err) {
-  console.warn('⚠️ Translation Service initialization failed:', err.message);
+  logger.warn('⚠️ Translation Service initialization failed:', err.message);
 }
 
 /**
@@ -26,16 +27,16 @@ try {
  */
 async function translateText(text, targetLang) {
   if (!translate || !targetLang || targetLang === 'en') return text;
-  
+
   try {
     const [translation] = await translate.translate(text, targetLang);
     return translation;
   } catch (err) {
-    console.error('Translation error:', err.message);
+    logger.error('Translation error:', err.message);
     return text; // Fallback to original text
   }
 }
 
 module.exports = {
-  translateText
+  translateText,
 };
