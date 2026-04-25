@@ -1,8 +1,13 @@
+const { JSDOM } = require('jsdom');
+const createDOMPurify = require('dompurify');
 const constants = require('../constants');
 
+const { window } = new JSDOM('');
+const DOMPurify = createDOMPurify(window);
+
 /**
- * Sanitize user input: strip HTML, trim, limit length
- * Improved to remove scripts and styles entirely
+ * Sanitize user input using DOMPurify for hardened XSS protection.
+ * Removes all HTML tags by default, trims, and limits length.
  * @param {string} input
  * @param {number} maxLen
  * @returns {string}
@@ -10,11 +15,11 @@ const constants = require('../constants');
 function sanitize(input, maxLen = constants.MAX_MESSAGE_LEN) {
   if (typeof input !== 'string') throw new Error('Input must be a string');
 
-  // Remove script and style tags and their contents
-  let clean = input.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '');
-
-  // Remove all other HTML tags
-  clean = clean.replace(/<[^>]*>/g, '');
+  // DOMPurify configuration: strip all HTML
+  const clean = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [], // No tags allowed
+    ALLOWED_ATTR: [], // No attributes allowed
+  });
 
   return clean.trim().slice(0, maxLen);
 }
